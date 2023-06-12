@@ -13,6 +13,7 @@ class VehicleListing(Base):
     id = Column(Integer, primary_key=True)
     City = Column(String)
     Province = Column(String)
+    Price = Column(Integer)
     Year = Column(Integer)
     Make = Column(String)
     Model = Column(String)
@@ -39,6 +40,7 @@ def get_all_vehicles():
             'id': entry.id,
             'City': entry.City,
             'Province': entry.Province,
+            'Price': entry.Price,
             'Year': entry.Year,
             'Make': entry.Make,
             'Model': entry.Model,
