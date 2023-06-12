@@ -17,6 +17,7 @@ class VehicleListing(Base):
     Year = Column(Integer)
     Make = Column(String)
     Model = Column(String)
+    Mileage = Column(Integer)
     URL = Column(String)
 
 # Create the engine and session
@@ -44,6 +45,7 @@ def get_all_vehicles():
             'Year': entry.Year,
             'Make': entry.Make,
             'Model': entry.Model,
+            'Mileage': entry.Mileage,
             'URL': entry.URL
         }
         vehicles.append(vehicle)

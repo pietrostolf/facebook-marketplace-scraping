@@ -85,6 +85,10 @@ d3.json(url).then((data) => {
     geninfo(make, model, province, minYear, maxYear);
     avg_prov(make, model, province, minYear, maxYear);
     avg_nat(make, model, minYear, maxYear);
+    avg_miles_prov(make, model, province, minYear, maxYear)
+    avg_miles_nat(make, model, minYear, maxYear)
+    aval_pie_prov(make, model, province, minYear, maxYear)
+    aval_pie_nat(make, model, minYear, maxYear)
         
 });
 
@@ -129,7 +133,7 @@ function geninfo(make, model, province, minYear, maxYear) {
 function avg_prov(make, model, province, minYear, maxYear) {
     d3.json(url).then((data) => {
         console.log(data);
-        const barProvDiv = d3.select('#bar_avg_year_prov');
+        const barProvDiv = d3.select('#avg_price_prov');
 
         // Remove previous content
         barProvDiv.html('');
@@ -153,9 +157,7 @@ function avg_prov(make, model, province, minYear, maxYear) {
         // Calculate the average price for each year
         filteredData.forEach((listing) => {
             const year = listing.Year;
-            console.log(listing.Year)
             const price = listing.Price;
-            console.log(listing.Price)
         
             // Find the index of the year in the years array
             const yearIndex = years.indexOf(year);
@@ -163,7 +165,6 @@ function avg_prov(make, model, province, minYear, maxYear) {
             if (yearIndex !== -1) {
                 // Year already exists in the years array, update the average price
                 averagePrices[yearIndex].totalPrice += price;
-                console.log(averagePrices[yearIndex].totalPrice);
                 averagePrices[yearIndex].count += 1;
             } else {
                 // Year doesn't exist in the years array, add it with initial values
@@ -212,7 +213,7 @@ function avg_prov(make, model, province, minYear, maxYear) {
         };
 
         // Plot the bar chart
-        Plotly.newPlot('bar_avg_year_prov', data1, layout);
+        Plotly.newPlot('avg_price_prov', data1, layout);
         
             
                 
@@ -224,7 +225,7 @@ function avg_prov(make, model, province, minYear, maxYear) {
 function avg_nat(make, model, minYear, maxYear) {
     d3.json(url).then((data) => {
         console.log(data);
-        const barNatDiv = d3.select('#bar_avg_year_nation');
+        const barNatDiv = d3.select('#avg_price_nation');
 
         // Remove previous content
         barNatDiv.html('');
@@ -247,9 +248,7 @@ function avg_nat(make, model, minYear, maxYear) {
         // Calculate the average price for each year
         filteredData.forEach((listing) => {
             const year = listing.Year;
-            console.log(listing.Year)
             const price = listing.Price;
-            console.log(listing.Price)
         
             // Find the index of the year in the years array
             const yearIndex = years.indexOf(year);
@@ -257,7 +256,6 @@ function avg_nat(make, model, minYear, maxYear) {
             if (yearIndex !== -1) {
                 // Year already exists in the years array, update the average price
                 averagePrices[yearIndex].totalPrice += price;
-                console.log(averagePrices[yearIndex].totalPrice);
                 averagePrices[yearIndex].count += 1;
             } else {
                 // Year doesn't exist in the years array, add it with initial values
@@ -306,7 +304,7 @@ function avg_nat(make, model, minYear, maxYear) {
         };
 
         // Plot the bar chart
-        Plotly.newPlot('bar_avg_year_nation', data1, layout);
+        Plotly.newPlot('avg_price_nation', data1, layout);
         
             
                 
@@ -314,7 +312,289 @@ function avg_nat(make, model, minYear, maxYear) {
     });
 }
 
-// Get the select elements
+// Bar graph for Average mileage at selected province
+function avg_miles_prov(make, model, province, minYear, maxYear) {
+    d3.json(url).then((data) => {
+        console.log(data);
+        const milProvDiv = d3.select('#avg_mileage_prov');
+
+        // Remove previous content
+        milProvDiv.html('');
+
+        // Filter Data
+        let filteredData = data.listings.filter((listing) => {
+            // Check if the listing matches the selected make, model, province, min year, and max year
+            return (
+                (make === 'All' || listing.Make === make) &&
+                (model === 'All' || listing.Model === model) &&
+                (province === 'All' || listing.Province === province) &&
+                listing.Year >= minYear &&
+                listing.Year <= maxYear
+            );
+        });
+
+        // Arrays to store years and average miles
+        const years = [];
+        const averageMiles = [];
+
+        // Calculate the average mileage for each year
+        filteredData.forEach((listing) => {
+            const year = listing.Year;
+            const miles = listing.Mileage;
+
+            // Find the index of the year in the years array
+            const yearIndex = years.indexOf(year);
+
+            if (yearIndex !== -1) {
+                // Year already exists in the years array, update the average mileage
+                averageMiles[yearIndex].totalMiles += miles;
+                averageMiles[yearIndex].count += 1;
+            } else {
+                // Year doesn't exist in the years array, add it with initial values
+                years.push(year);
+                averageMiles.push({
+                    totalMiles: miles,
+                    count: 1
+                });
+            }
+        });
+
+        // Calculate the average mileage for each year
+        for (let i = 0; i < years.length; i++) {
+            const total = averageMiles[i].totalMiles;
+            const count = averageMiles[i].count;
+
+            let avgMilesValue = 0; // Default value if count is 0
+
+            if (count !== 0) {
+                avgMilesValue = total / count;
+            }
+
+            // Update the average mileage in the averageMiles array
+            averageMiles[i] = avgMilesValue;
+        }
+
+        // Create a trace for the bar chart
+        const trace = {
+            x: years,
+            y: averageMiles,
+            type: 'bar'
+        };
+
+        // Create the data array with the trace
+        const data1 = [trace];
+
+        // Set the layout options for the chart
+        const layout = {
+            title: `Average Mileage by Year in ${province}`,
+            xaxis: {
+                title: 'Year'
+            },
+            yaxis: {
+                title: 'Average Mileage'
+            }
+        };
+
+        // Plot the bar chart
+        Plotly.newPlot('avg_mileage_prov', data1, layout);
+    });
+}
+
+// Bar graph for Average mileage nationwide
+function avg_miles_nat(make, model, minYear, maxYear) {
+    d3.json(url).then((data) => {
+        console.log(data);
+        const milNatDiv = d3.select('#avg_mileage_nation');
+
+        // Remove previous content
+        milNatDiv.html('');
+
+        // Filter Data
+        let filteredData = data.listings.filter((listing) => {
+            // Check if the listing matches the selected make, model, min year, and max year
+            return (
+                (make === 'All' || listing.Make === make) &&
+                (model === 'All' || listing.Model === model) &&
+                listing.Year >= minYear &&
+                listing.Year <= maxYear
+            );
+        });
+
+        // Arrays to store years and average miles
+        const years = [];
+        const averageMiles = [];
+
+        // Calculate the average mileage for each year
+        filteredData.forEach((listing) => {
+            const year = listing.Year;
+            const miles = listing.Mileage;
+
+            // Find the index of the year in the years array
+            const yearIndex = years.indexOf(year);
+
+            if (yearIndex !== -1) {
+                // Year already exists in the years array, update the average mileage
+                averageMiles[yearIndex].totalMiles += miles;
+                averageMiles[yearIndex].count += 1;
+            } else {
+                // Year doesn't exist in the years array, add it with initial values
+                years.push(year);
+                averageMiles.push({
+                    totalMiles: miles,
+                    count: 1
+                });
+            }
+        });
+
+        // Calculate the average mileage for each year
+        for (let i = 0; i < years.length; i++) {
+            const total = averageMiles[i].totalMiles;
+            const count = averageMiles[i].count;
+
+            let avgMilesValue = 0; // Default value if count is 0
+
+            if (count !== 0) {
+                avgMilesValue = total / count;
+            }
+
+            // Update the average mileage in the averageMiles array
+            averageMiles[i] = avgMilesValue;
+        }
+
+        // Create a trace for the bar chart
+        const trace = {
+            x: years,
+            y: averageMiles,
+            type: 'bar'
+        };
+
+        // Create the data array with the trace
+        const data1 = [trace];
+
+        // Set the layout options for the chart
+        const layout = {
+            title: `Average Mileage by Year Nationwide`,
+            xaxis: {
+                title: 'Year'
+            },
+            yaxis: {
+                title: 'Average Mileage'
+            }
+        };
+
+        // Plot the bar chart
+        Plotly.newPlot('avg_mileage_nation', data1, layout);
+    });
+}
+
+
+// Pie graph for Quantity of listings by year in select province
+function aval_pie_prov(make, model, province, minYear, maxYear) {
+    d3.json(url).then((data) => {
+      console.log(data);
+      const pieDiv = d3.select('#aval_pie_prov');
+  
+      // Remove previous content
+      pieDiv.html('');
+  
+      let filteredData = data.listings.filter((listing) => {
+        // Check if the listing matches the selected make, model, province, min year, and max year
+        return (
+          (make === 'All' || listing.Make === make) &&
+          (model === 'All' || listing.Model === model) &&
+          (province === 'All' || listing.Province === province) &&
+          listing.Year >= minYear &&
+          listing.Year <= maxYear
+        );
+      });
+  
+      // Group the listings by year and count the number of listings for each year
+      let countByYear = d3
+        .nest()
+        .key((d) => d.Year)
+        .rollup((v) => v.length)
+        .entries(filteredData);
+  
+      // Convert the countByYear array to an array of objects
+      let countData = countByYear.map(({ key: year, value: count }) => ({ year, count }));
+  
+      // Sort the countData array by year
+      countData.sort((a, b) => a.year - b.year);
+  
+      // Create an array of years and an array of corresponding counts
+      let years = countData.map((d) => d.year);
+      let counts = countData.map((d) => d.count);
+  
+      // Create the pie chart using Plotly
+      const pieTrace = {
+        labels: years,
+        values: counts,
+        type: 'pie',
+      };
+  
+      const pieLayout = {
+        title: `Quantity of Listings by Year in ${province}`,
+        height: 400,
+        width: 500,
+      };
+  
+      Plotly.newPlot('aval_pie_prov', [pieTrace], pieLayout);
+    });
+}
+
+// Pie graph for Quantity of listings by year nationwide
+function aval_pie_nat(make, model, minYear, maxYear) {
+    d3.json(url).then((data) => {
+      console.log(data);
+      const pieDivnat = d3.select('#aval_pie_nation');
+  
+      // Remove previous content
+      pieDivnat.html('');
+  
+      let filteredData = data.listings.filter((listing) => {
+        // Check if the listing matches the selected make, model, province, min year, and max year
+        return (
+          (make === 'All' || listing.Make === make) &&
+          (model === 'All' || listing.Model === model) &&
+          listing.Year >= minYear &&
+          listing.Year <= maxYear
+        );
+      });
+  
+      // Group the listings by year and count the number of listings for each year
+      let countByYear = d3
+        .nest()
+        .key((d) => d.Year)
+        .rollup((v) => v.length)
+        .entries(filteredData);
+  
+      // Convert the countByYear array to an array of objects
+      let countData = countByYear.map(({ key: year, value: count }) => ({ year, count }));
+  
+      // Sort the countData array by year
+      countData.sort((a, b) => a.year - b.year);
+  
+      // Create an array of years and an array of corresponding counts
+      let years = countData.map((d) => d.year);
+      let counts = countData.map((d) => d.count);
+  
+      // Create the pie chart using Plotly
+      const pieTrace = {
+        labels: years,
+        values: counts,
+        type: 'pie',
+      };
+  
+      const pieLayout = {
+        title: `Quantity of Listings by Year Nationwide`,
+        height: 400,
+        width: 500,
+      };
+  
+      Plotly.newPlot('aval_pie_nation', [pieTrace], pieLayout);
+    });
+}
+// Get the select elements in the dropdowns
 const makeSelect = document.getElementById('makeDataset');
 const modelSelect = document.getElementById('modelDataset');
 const provSelect = document.getElementById('provDataset');
@@ -351,4 +631,8 @@ function sendOptions() {
   geninfo(makeValue, modelValue, provValue, minYearValue, maxYearValue);
   avg_prov(makeValue, modelValue, provValue, minYearValue, maxYearValue);
   avg_nat(makeValue, modelValue, minYearValue, maxYearValue)
+  avg_miles_prov(makeValue, modelValue, provValue, minYearValue, maxYearValue)
+  avg_miles_nat(makeValue, modelValue, minYearValue, maxYearValue)
+  aval_pie_prov(makeValue, modelValue, provValue, minYearValue, maxYearValue)
+  aval_pie_nat(makeValue, modelValue, minYearValue, maxYearValue)
 }
