@@ -1,5 +1,55 @@
 const url = 'http://127.0.0.1:5000/api';
 
+//Create Map
+function showMap() {
+// Create a map object.
+let myMap = L.map("map", {
+    center: [37.09, -95.71],
+    zoom: 5
+  });
+  
+  // Add a tile layer.
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(myMap);
+  
+  // An array containing each city's name, location, and population
+  let cities = [{
+    location: [40.7128, -74.0059],
+    name: "New York",
+    population: 8550405
+  },
+  {
+    location: [41.8781, -87.6298],
+    name: "Chicago",
+    population: 2720546
+  },
+  {
+    location: [29.7604, -95.3698],
+    name: "Houston",
+    population: 2296224
+  },
+  {
+    location: [34.0522, -118.2437],
+    name: "Los Angeles",
+    population: 3971883
+  },
+  {
+    location: [41.2524, -95.9980],
+    name: "Omaha",
+    population: 446599
+  }
+  ];
+  
+  // Looping through the cities array, create one marker for each city, bind a popup containing its name and population, and add it to the map.
+  for (let i = 0; i < cities.length; i++) {
+    let city = cities[i];
+    L.marker(city.location)
+      .bindPopup(`<h1>${city.name}</h1> <hr> <h3>Population ${city.population.toLocaleString()}</h3>`)
+      .addTo(myMap);
+  }
+}
+
 d3.json(url).then((data) => {
     console.log(data);
     const genInfoDiv = d3.select('#gen_info');
@@ -89,6 +139,10 @@ d3.json(url).then((data) => {
     avg_miles_nat(make, model, minYear, maxYear)
     aval_pie_prov(make, model, province, minYear, maxYear)
     aval_pie_nat(make, model, minYear, maxYear)
+    in_prov(make, model, province, minYear, maxYear)
+    in_nat(make, model, minYear, maxYear)
+    insights(make, model, province, minYear, maxYear)
+    showMap()
         
 });
 
@@ -550,7 +604,8 @@ function aval_pie_nat(make, model, minYear, maxYear) {
   
       // Remove previous content
       pieDivnat.html('');
-  
+        
+      // Apply filters
       let filteredData = data.listings.filter((listing) => {
         // Check if the listing matches the selected make, model, province, min year, and max year
         return (
@@ -594,6 +649,264 @@ function aval_pie_nat(make, model, minYear, maxYear) {
       Plotly.newPlot('aval_pie_nation', [pieTrace], pieLayout);
     });
 }
+
+// Cheapest vehicles for select province
+function in_prov(make, model, province, minYear, maxYear) {
+    d3.json(url).then((data) => {
+        console.log(data);
+        const inDivprov = d3.select('#insights_prov');
+
+        // Remove previous content
+        inDivprov.html('');
+
+        // Apply filters
+        let filteredData = data.listings.filter((listing) => {
+            // Check if the listing matches the selected make, model, province, min year, and max year
+            return (
+                (make === 'All' || listing.Make === make) &&
+                (model === 'All' || listing.Model === model) &&
+                (province === 'All' || listing.Province === province) &&
+                listing.Year >= minYear &&
+                listing.Year <= maxYear
+            );
+        });
+
+        // Group the listings by year
+        let nestByYear = d3.nest().key((d) => d.Year).entries(filteredData);
+
+        // Find the cheapest vehicle for each year
+        let cheapestVehicles = [];
+        for (const { key: year, values: listings } of nestByYear) {
+            let cheapestVehicle = listings.reduce((minPriceVehicle, currentVehicle) => {
+                if (currentVehicle.Price < minPriceVehicle.Price) {
+                    return currentVehicle;
+                } else {
+                    return minPriceVehicle;
+                }
+            });
+            cheapestVehicles.push({ year: year, url: cheapestVehicle.URL });
+        }
+
+        // Sort the cheapest vehicles array by year in ascending order
+        cheapestVehicles.sort((a, b) => a.year - b.year);
+
+        // Create a dropdown select element
+        const dropdown = inDivprov.append('select');
+
+        // Add an option for each cheapest vehicle
+        cheapestVehicles.forEach((vehicle) => {
+            dropdown.append('option')
+                .attr('value', vehicle.year)
+                .text(`Year: ${vehicle.year}`)
+                .attr('data-url', `https://${vehicle.url}`);
+        });
+
+        // Create a button for accessing the URL
+        const button = inDivprov.append('button')
+            .text('Go')
+            .style('margin-left', '10px')
+            .style('padding', '5px 10px')
+            .style('font-size', '15px')
+            .style('cursor', 'pointer');
+
+        // Button click event handler
+        button.on('click', function () {
+            const selectedOption = dropdown.node().options[dropdown.node().selectedIndex];
+            const url = selectedOption.getAttribute('data-url');
+            window.open(url, '_blank');
+        });
+
+        // Add a title
+        inDivprov.insert('h5', ':first-child')
+            .html(`Cheapest Vehicles in <strong>${province}</strong> from <strong>${minYear}</strong> to <strong>${maxYear}</strong> for your search:`);
+
+    });
+}
+
+// Cheapest vehicles nationwide
+function in_nat(make, model, minYear, maxYear) {
+    d3.json(url).then((data) => {
+        console.log(data);
+        const inDivnat = d3.select('#insights_nation');
+
+        // Remove previous content
+        inDivnat.html('');
+
+        // Apply filters
+        let filteredData = data.listings.filter((listing) => {
+            // Check if the listing matches the selected make, model, min year, and max year
+            return (
+                (make === 'All' || listing.Make === make) &&
+                (model === 'All' || listing.Model === model) &&
+                listing.Year >= minYear &&
+                listing.Year <= maxYear
+            );
+        });
+
+        // Group the listings by year
+        let nestByYear = d3.nest().key((d) => d.Year).entries(filteredData);
+
+        // Find the cheapest vehicle for each year
+        let cheapestVehicles = [];
+        for (const { key: year, values: listings } of nestByYear) {
+            let cheapestVehicle = listings.reduce((minPriceVehicle, currentVehicle) => {
+                if (currentVehicle.Price < minPriceVehicle.Price) {
+                    return currentVehicle;
+                } else {
+                    return minPriceVehicle;
+                }
+            });
+            cheapestVehicles.push({ year: year, url: cheapestVehicle.URL });
+        }
+
+        // Sort the cheapest vehicles array by year in ascending order
+        cheapestVehicles.sort((a, b) => a.year - b.year);
+
+        // Create a dropdown select element
+        const dropdown = inDivnat.append('select');
+
+        // Add an option for each cheapest vehicle
+        cheapestVehicles.forEach((vehicle) => {
+            dropdown.append('option')
+                .attr('value', vehicle.year)
+                .text(`Year: ${vehicle.year}`)
+                .attr('data-url', `https://${vehicle.url}`);
+        });
+
+        // Create a button for accessing the URL
+        const button = inDivnat.append('button')
+            .text('Go')
+            .style('margin-left', '10px')
+            .style('padding', '5px 10px')
+            .style('font-size', '15px')
+            .style('cursor', 'pointer');
+
+        // Button click event handler
+        button.on('click', function () {
+            const selectedOption = dropdown.node().options[dropdown.node().selectedIndex];
+            const url = selectedOption.getAttribute('data-url');
+            window.open(url, '_blank');
+        });
+
+        // Add a title
+        inDivnat.insert('h5', ':first-child')
+            .html(`Cheapest Vehicles <strong>Nationwide</strong> from <strong>${minYear}</strong> to <strong>${maxYear}</strong> for your search:`);
+    });
+}
+
+// Insights
+function insights(make, model, province, minYear, maxYear) {
+    d3.json(url).then((data) => {
+      // Apply filters to get province results
+      let filteredDataProv = data.listings.filter((listing) => {
+        // Check if the listing matches the selected make, model, province, min year, and max year
+        return (
+          (make === 'All' || listing.Make === make) &&
+          (model === 'All' || listing.Model === model) &&
+          (province === 'All' || listing.Province === province) &&
+          listing.Year >= minYear &&
+          listing.Year <= maxYear
+        );
+      });
+  
+      // Group province data by year and calculate average prices and mileage
+      let provinceYearlyData = d3.nest()
+        .key((d) => d.Year)
+        .rollup((values) => {
+          return {
+            AveragePrice: d3.mean(values, (d) => d.Price),
+            AverageMileage: d3.mean(values, (d) => d.Mileage)
+          };
+        })
+        .entries(filteredDataProv);
+  
+      // Apply filters to get nationwide results
+      let filteredDataNat = data.listings.filter((listing) => {
+        // Check if the listing matches the selected make, model, min year, and max year
+        return (
+          (make === 'All' || listing.Make === make) &&
+          (model === 'All' || listing.Model === model) &&
+          listing.Year >= minYear &&
+          listing.Year <= maxYear
+        );
+      });
+  
+      // Group nationwide data by year and calculate average prices and mileage
+      let nationalYearlyData = d3.nest()
+        .key((d) => d.Year)
+        .rollup((values) => {
+          return {
+            AveragePrice: d3.mean(values, (d) => d.Price),
+            AverageMileage: d3.mean(values, (d) => d.Mileage)
+          };
+        })
+        .entries(filteredDataNat);
+  
+      // Calculate the percentage difference between province and national average prices and mileage for each year
+      let percentageDifferences = provinceYearlyData.map((provinceData) => {
+        let nationalData = nationalYearlyData.find((d) => d.key === provinceData.key);
+        let pricePercentageDifference = ((provinceData.value.AveragePrice - nationalData.value.AveragePrice) / nationalData.value.AveragePrice) * 100;
+        let mileagePercentageDifference = ((provinceData.value.AverageMileage - nationalData.value.AverageMileage) / nationalData.value.AverageMileage) * 100;
+        return {
+          Year: provinceData.key,
+          ProvinceAveragePrice: provinceData.value.AveragePrice,
+          ProvinceAverageMileage: provinceData.value.AverageMileage,
+          NationalAveragePrice: nationalData.value.AveragePrice,
+          NationalAverageMileage: nationalData.value.AverageMileage,
+          PricePercentageDifference: pricePercentageDifference,
+          MileagePercentageDifference: mileagePercentageDifference
+        };
+      });
+  
+      // Sort the percentage differences by year in ascending order
+      percentageDifferences.sort((a, b) => d3.ascending(a.Year, b.Year));
+  
+      // Update the options in the dropdown based on the results
+      let dropdown = d3.select('#selYear');
+      let options = dropdown.selectAll('option')
+        .data(percentageDifferences)
+        .join('option')
+        .text((d) => `${d.Year}: Price Diff: ${d.PricePercentageDifference.toFixed(2)}%, Mileage Diff: ${d.MileagePercentageDifference.toFixed(2)}%`)
+        .attr('value', (d) => d.Year);
+
+      // Select the first year in the dropdown
+      dropdown.property('value', percentageDifferences[0].Year);
+  
+      // Handle dropdown change event
+      dropdown.on('change', function () {
+        let selectedYear = d3.select(this).property('value');
+        let selectedPercentageDifference = percentageDifferences.find((d) => d.Year === selectedYear);
+  
+        // Update the content in the #gen_insights div based on the selected year
+        let geninsDiv = d3.select('#gen_insights');
+        geninsDiv.html(`<table class="table">
+                          <thead>
+                            <tr>
+                              <th></th>
+                              <th>Province Average</th>
+                              <th>National Average</th>
+                              <th>Percentage Difference</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>Price</td>
+                              <td>${selectedPercentageDifference.ProvinceAveragePrice.toFixed(2)}</td>
+                              <td>${selectedPercentageDifference.NationalAveragePrice.toFixed(2)}</td>
+                              <td>${selectedPercentageDifference.PricePercentageDifference.toFixed(2)}%</td>
+                            </tr>
+                            <tr>
+                              <td>Mileage</td>
+                              <td>${selectedPercentageDifference.ProvinceAverageMileage.toFixed(2)}</td>
+                              <td>${selectedPercentageDifference.NationalAverageMileage.toFixed(2)}</td>
+                              <td>${selectedPercentageDifference.MileagePercentageDifference.toFixed(2)}%</td>
+                            </tr>
+                          </tbody>
+                        </table>`);
+      });
+    });
+  }
+
 // Get the select elements in the dropdowns
 const makeSelect = document.getElementById('makeDataset');
 const modelSelect = document.getElementById('modelDataset');
@@ -635,4 +948,8 @@ function sendOptions() {
   avg_miles_nat(makeValue, modelValue, minYearValue, maxYearValue)
   aval_pie_prov(makeValue, modelValue, provValue, minYearValue, maxYearValue)
   aval_pie_nat(makeValue, modelValue, minYearValue, maxYearValue)
+  in_prov(makeValue, modelValue, provValue, minYearValue, maxYearValue)
+  in_nat(makeValue, modelValue, minYearValue, maxYearValue)
+  insights(makeValue, modelValue, provValue, minYearValue, maxYearValue)
+  showMap()
 }
