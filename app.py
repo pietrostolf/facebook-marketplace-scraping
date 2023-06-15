@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from flask_cors import CORS
 
+
 # Define the VehicleListing class
 Base = declarative_base()
 

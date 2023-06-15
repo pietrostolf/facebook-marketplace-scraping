@@ -12,20 +12,20 @@
     integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
     crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.3.3/dist/leaflet.js"
-  integrity="sha512-tAGcCfR4Sc5ZP5ZoVz0quoZDYX5aCtEm/eu1KhSLj2c9eFrylXZknQYmxUssFaVJKvvc0dJQixhGjG2yXWiV9Q=="
-  crossorigin=""></script>
+    integrity="sha512-tAGcCfR4Sc5ZP5ZoVz0quoZDYX5aCtEm/eu1KhSLj2c9eFrylXZknQYmxUssFaVJKvvc0dJQixhGjG2yXWiV9Q=="
+    crossorigin=""></script>
 
 </head>
 
 <body>
-  <div class="container">
-    <div class="row">
-      <div class="col-md-12 jumbotron text-center">
-        <h1>Marketplace Vehicle Listing Analyzer</h1>
-        <p></p>
-      </div>
-
+  <div class="row">
+    <div class="col-md-12" style="background-color: #387cb4; margin-bottom: 10px; width: 100%; height: 55px; padding-left: 20px;">
+      <img src="images/AUTO_MVP_LOGO.png" alt="Description of the image" style="width: 200px; height: 50px;">
+      <p></p>
     </div>
+  </div>
+  
+  <div class="container">
     <div class="row">
       <div class="col-md-2">
         <div class="well">
@@ -48,32 +48,26 @@
         </div>
       </div>
       <div class="col-md-10">
-        
-        <div id="map" style="height: 150px; margin-bottom: 10px;"></div>
+        <div id="map" style="height: 180px; margin-bottom: 10px;"></div>
       </div>
       <div class="col-md-10">
-        
         <div id="ins_title"><strong>INSIGHTS</strong></div>
       </div>
       <div class="col-md-10">
         <select id="selYear" style="width: 100%;"></select>
       </div>
-      
       <div class="col-md-10">
-        
         <div id="gen_insights" style="background-color: #f8f4f4;"></div>
       </div>
       <div class="col-md-10">
-        
         <div id="cheap_title"><strong>CHEAPEST FINDS</strong></div>
       </div>
       <div class="col-md-5" >
         <div class="row">
           <div class="col-md-12">
-            <div id="insights_prov" style="background-color: #f8f4f4; padding-top: 1px;" ></div>
+            <div id="insights_prov" style="background-color: #f8f4f4; padding-top: 1px;"></div>
           </div>
         </div>
-
         <div class="row">
           <div class="col-md-12">
             <div id="avg_price_prov"></div>
@@ -93,7 +87,7 @@
       <div class="col-md-5" >
         <div class="row">
           <div class="col-md-12">
-            <div id="insights_nation" style="background-color: #f8f4f4; padding-top: 1px;" ></div>
+            <div id="insights_nation" style="background-color: #f8f4f4; padding-top: 1px;"></div>
           </div>
         </div>
         <div class="row">
@@ -122,6 +116,9 @@
 
   <script src="https://d3js.org/d3.v5.min.js"></script>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <!-- <script src="{{ url_for('static', filename='js/logic.js')}}"></script> -->
+  <!-- <script src="<?php echo url_for('static/js/logic.js'); ?>"></script> -->
+  <!-- <script type="text/javascript" src="{{ url_for('static', filename='js/logic.js') }}"></script> -->
   <script src="static/js/logic.js"></script>
   
 </body>
