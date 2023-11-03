@@ -1,16 +1,10 @@
-# fly.toml app configuration file generated for auto-mvp-8 on 2023-06-14T22:44:56-04:00
+# fly.toml app configuration file generated for testproj on 2023-08-10T22:50:26-04:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "auto-mvp-8"
+app = "testproj"
 primary_region = "yyz"
-
-[build]
-  builder = "paketobuildpacks/builder:base"
-
-[env]
-  PORT = "8080"
 
 [http_service]
   internal_port = 8080

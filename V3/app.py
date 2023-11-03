@@ -4,7 +4,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from flask_cors import CORS
 
-
 # Define the VehicleListing class
 Base = declarative_base()
 
@@ -22,8 +21,7 @@ class VehicleListing(Base):
     URL = Column(String)
 
 # Create the engine and session
-engine = create_engine('sqlite:///vehicle2.db?check_same_thread=False')
-
+engine = create_engine('postgresql://postgres:140494@localhost:5433/vehicle3')
 Session = sessionmaker(bind=engine)
 session = Session()
 
@@ -52,8 +50,7 @@ def get_all_vehicles():
         }
         vehicles.append(vehicle)
 
-
-# Create the response data
+    # Create the response data
     response_data = {
         'listings': vehicles
     }
